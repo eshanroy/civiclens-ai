@@ -1,8 +1,17 @@
 from pathlib import Path
+import os
 
 import pymupdf
 import pytesseract
 from PIL import Image
+
+
+tesseract_cmd = os.getenv(
+    "TESSERACT_CMD",
+    "tesseract"
+)
+
+pytesseract.pytesseract.tesseract_cmd = tesseract_cmd
 
 
 def extract_text_from_pdf(file_path: str) -> dict:
