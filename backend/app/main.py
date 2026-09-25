@@ -4,6 +4,20 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.api.upload import router as upload_router
 
+from app.db.database import Base, engine
+from app.models.document import Document
+
+
+# =========================================================
+# DATABASE INITIALIZATION
+# =========================================================
+
+Base.metadata.create_all(bind=engine)
+
+
+# =========================================================
+# FASTAPI APPLICATION
+# =========================================================
 
 app = FastAPI(
     title=settings.app_name,
