@@ -14,6 +14,28 @@ tesseract_cmd = os.getenv(
 pytesseract.pytesseract.tesseract_cmd = tesseract_cmd
 
 
+def run_ocr(page, scale: float) -> str:
+    """
+    Render a PDF page at the requested scale and run Tesseract OCR.
+    """
+
+    pixmap = page.get_pixmap(
+        matrix=pymupdf.Matrix(scale, scale)
+    )
+
+    image = Image.frombytes(
+        "RGB",
+        [pixmap.width, pixmap.height],
+        pixmap.samples
+    )
+
+    text = pytesseract.image_to_string(
+        image
+    ).strip()
+
+    return text
+
+
 def extract_text_from_pdf(file_path: str) -> dict:
     """
     Extract text from a PDF.
@@ -21,12 +43,16 @@ def extract_text_from_pdf(file_path: str) -> dict:
     Strategy:
     1. Try native PDF text extraction using PyMuPDF.
     2. If a page contains little/no text, use Tesseract OCR.
+    3. Start OCR at 1x resolution to reduce memory usage.
+    4. If the result is too short, retry that page at 2x resolution.
     """
 
     pdf_path = Path(file_path)
 
     if not pdf_path.exists():
-        raise FileNotFoundError(f"PDF not found: {file_path}")
+        raise FileNotFoundError(
+            f"PDF not found: {file_path}"
+        )
 
     document = pymupdf.open(pdf_path)
 
@@ -34,9 +60,10 @@ def extract_text_from_pdf(file_path: str) -> dict:
     ocr_pages = 0
     native_pages = 0
 
-    for page_number, page in enumerate(document, start=1):
-
-        # Try normal text extraction first
+    for page_number, page in enumerate(
+        document,
+        start=1
+    ):
         text = page.get_text("text").strip()
 
         if len(text) >= 50:
@@ -49,19 +76,18 @@ def extract_text_from_pdf(file_path: str) -> dict:
             })
 
         else:
-            # Render PDF page as an image
-            pixmap = page.get_pixmap(
-                matrix=pymupdf.Matrix(2, 2)
+            ocr_text = run_ocr(
+                page,
+                scale=1.0
             )
 
-            image = Image.frombytes(
-                "RGB",
-                [pixmap.width, pixmap.height],
-                pixmap.samples
-            )
-
-            # OCR using Tesseract
-            ocr_text = pytesseract.image_to_string(image).strip()
+            # If 1x OCR produced too little text,
+            # retry at higher resolution.
+            if len(ocr_text) < 300:
+                ocr_text = run_ocr(
+                    page,
+                    scale=2.0
+                )
 
             ocr_pages += 1
 
