@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 
 
-const API_BASE_URL = "https://civiclens-ai-scrd.onrender.com";
+const API_BASE_URL = "https://civiclens-ai-backend-ldde.onrender.com";
 
 
 function App() {
