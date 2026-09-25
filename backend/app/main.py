@@ -19,10 +19,10 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-        "https://civiclens-ai-flax.vercel.app",
-    ],
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "https://civiclens-ai-liard.vercel.app",
+],
     allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=False,
     allow_methods=["*"],
